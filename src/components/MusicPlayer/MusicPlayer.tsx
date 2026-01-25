@@ -22,9 +22,9 @@ const MusicPlayer = () => {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  // const [duration, setDuration] = useState(0);
 
-  // const [repeatMode, setRepeatMode] = useState("none");
+  const [repeatMode, setRepeatMode] = useState("none");
   // const [isShuffled, setIsShuffled] = useState(false);
   // const [isLiked, setIsLiked] = useState(false);
 
@@ -35,10 +35,10 @@ const MusicPlayer = () => {
     if (!audio) return;
 
     const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
+    // const updateDuration = () => setDuration(audio.duration);
 
     audio.addEventListener("timeupdate", updateTime);
-    audio.addEventListener("loadedmetadata", updateDuration);
+    // audio.addEventListener("loadedmetadata", updateDuration);
   }, [currentTrackIndex]);
 
   const handlePlayPause = () => {
@@ -73,6 +73,13 @@ const MusicPlayer = () => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+  };
+
+  const toggleRepeat = () => {
+    const modes = ["none", "one", "all"];
+    const currentIndex = modes.indexOf(repeatMode);
+    const nextIndex = (currentIndex + 1) & modes.length;
+    setRepeatMode(modes[nextIndex]);
   };
 
   return (
@@ -125,7 +132,7 @@ const MusicPlayer = () => {
                   <ProgressBar />
                   <div className='flex justify-between text-sm text-gray-400 mt-2'>
                     <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(currentTrack.duration)}</span>
+                    {/* <span>{formatTime(currentTrack.duration)}</span> */}
                   </div>
                   {/* Control Buttons */}
                   <div className='flex items-center justify-center gap-4 mt-6'>
@@ -158,11 +165,14 @@ const MusicPlayer = () => {
 
                     <button
                       className={`relative p-3 rounded-full transition-all duration-300 text-dark hover:bg-gray-300 hover:scale-110 cursor-pointer`}
+                      onClick={toggleRepeat}
                     >
                       <Repeat size={18} />
-                      <span className='absolute -top-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center font-bold text-xs text-white'>
-                        1
-                      </span>
+                      {repeatMode === "one" && (
+                        <span className='absolute -top-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center font-bold text-xs text-white'>
+                          1
+                        </span>
+                      )}
                     </button>
 
                     {/* Volume Control */}
