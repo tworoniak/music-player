@@ -1,4 +1,14 @@
-export const tracks = [
+export interface Track {
+  id: number;
+  title: string;
+  artist: string;
+  album: string;
+  duration: number;
+  coverUrl: string;
+  audioUrl: string;
+}
+
+const tracks: Track[] = [
   {
     id: 1,
     title: "Arbiters of the Apocalypse",
@@ -18,3 +28,5 @@ export const tracks = [
     audioUrl: "/music/02_Mark_of_the_Blade.mp3",
   },
 ];
+
+export default tracks;

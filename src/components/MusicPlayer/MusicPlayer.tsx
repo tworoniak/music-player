@@ -15,7 +15,7 @@ import {
 import ProgressBar from "../ProgressBar/ProgressBar";
 import VolumeControl from "../VolumeControl/VolumeControl";
 import PlayList from "../PlayList/PlayList";
-import { tracks } from "../../tracks";
+import tracks from "../../tracks";
 
 const MusicPlayer = () => {
   const audioRef = useRef(null);
