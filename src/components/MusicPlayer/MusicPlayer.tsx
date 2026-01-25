@@ -1,5 +1,5 @@
 // import React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   Play,
   // Pause,
@@ -24,7 +24,22 @@ const MusicPlayer = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
+  const [repeatMode, setRepeatMode] = useState("none");
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+
   const currentTrack = tracks[currentTrackIndex];
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateTime = () => setCurrentTime(audio.currentTime);
+    const updateDuration = () => setDuration(audio.duration);
+
+    audio.addEventListener("timeupdate", updateTime);
+    audio.addEventListener("loadedmetadata", updateDuration);
+  }, [currentTrackIndex]);
 
   const handlePlayPause = () => {
     const audio = audioRef.current;
