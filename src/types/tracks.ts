@@ -8,7 +8,7 @@ export interface Track {
   audioUrl: string;
 }
 
-const tracks: Track[] = [
+const tracksData: Track[] = [
   {
     id: 1,
     title: "Arbiters of the Apocalypse",
@@ -29,4 +29,4 @@ const tracks: Track[] = [
   },
 ];
 
-export default tracks;
+export default tracksData;

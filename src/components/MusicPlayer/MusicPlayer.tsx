@@ -15,7 +15,8 @@ import ProgressBar from "../ProgressBar/ProgressBar";
 import VolumeControl from "../VolumeControl/VolumeControl";
 import PlayList from "../PlayList/PlayList";
 import BarVisualizer from "../BarVisualizer/BarVisualizer";
-import tracks from "../../tracks";
+import tracksData from "../../types/tracks";
+import type { Track } from "../../types/tracks";
 
 const MusicPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -27,19 +28,20 @@ const MusicPlayer = () => {
 
   const [repeatMode, setRepeatMode] = useState<"none" | "one" | "all">("none");
   const [isShuffled, setIsShuffled] = useState(false);
+  const [shuffledOrder, setShuffledOrder] = useState<number[]>([]);
   const [isLiked, setIsLiked] = useState(false);
 
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Lazy AudioContext & Analyser for BarVisualizer
+  // AudioContext & visualizer
   const audioContextRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
-  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+  const [analyser, setAnalyser] = useState<AnalyserNode | null>(null);
 
-  const currentTrack = tracks[currentTrackIndex];
+  const currentTrack = tracksData[currentTrackIndex];
 
-  // -------------------- Audio Event Listeners --------------------
+  // -------------------- Audio Events --------------------
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -57,64 +59,66 @@ const MusicPlayer = () => {
   }, [currentTrackIndex]);
 
   // -------------------- Play / Pause --------------------
+
   const handlePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    // Lazily create AudioContext + analyser on first play
     if (!audioContextRef.current) {
-      const audioContext = new (
-        window.AudioContext || (window as any).webkitAudioContext
-      )();
-      const source = audioContext.createMediaElementSource(audio);
-      const analyser = audioContext.createAnalyser();
+      const AudioContextClass =
+        window.AudioContext ||
+        (window as unknown as { webkitAudioContext?: typeof AudioContext })
+          .webkitAudioContext;
 
-      source.connect(analyser);
-      analyser.connect(audioContext.destination);
+      if (!AudioContextClass) {
+        console.error("Web Audio API not supported");
+        return;
+      }
+
+      const audioContext = new AudioContextClass();
+      const source = audioContext.createMediaElementSource(audio);
+      const analyserNode = audioContext.createAnalyser();
+
+      source.connect(analyserNode);
+      analyserNode.connect(audioContext.destination);
 
       audioContextRef.current = audioContext;
-      analyserRef.current = analyser;
-      sourceRef.current = source;
+      analyserRef.current = analyserNode;
+      setAnalyser(analyserNode); // Add this line
     } else if (audioContextRef.current.state === "suspended") {
       await audioContextRef.current.resume();
     }
 
     try {
-      await audio.play(); // User interaction starts playback
+      await audio.play();
       setIsPlaying(true);
     } catch (err) {
-      console.log("Playback blocked until user interaction", err);
+      console.log("Playback blocked:", err);
     }
   };
 
   const handlePause = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
     audio.pause();
     setIsPlaying(false);
   };
 
-  const handlePrevious = () => {
-    const newIndex =
-      currentTrackIndex > 0 ? currentTrackIndex - 1 : tracks.length - 1;
-    setCurrentTrackIndex(newIndex);
-    setIsPlaying(false);
-  };
+  // -------------------- Track Navigation --------------------
+  const handlePrevious = () =>
+    setCurrentTrackIndex(
+      currentTrackIndex > 0 ? currentTrackIndex - 1 : tracksData.length - 1,
+    );
 
-  const handleNext = () => {
-    const newIndex =
-      currentTrackIndex < tracks.length - 1 ? currentTrackIndex + 1 : 0;
-    setCurrentTrackIndex(newIndex);
-    setIsPlaying(false);
-  };
+  const handleNext = () =>
+    setCurrentTrackIndex(
+      currentTrackIndex < tracksData.length - 1 ? currentTrackIndex + 1 : 0,
+    );
 
   // -------------------- Repeat --------------------
   const toggleRepeat = () => {
     const modes: ("none" | "one" | "all")[] = ["none", "one", "all"];
-    const currentIndex = modes.indexOf(repeatMode);
-    const nextIndex = (currentIndex + 1) % modes.length;
-    setRepeatMode(modes[nextIndex]);
+    setRepeatMode(modes[(modes.indexOf(repeatMode) + 1) % modes.length]);
   };
 
   // -------------------- Seek --------------------
@@ -125,21 +129,19 @@ const MusicPlayer = () => {
     setCurrentTime(time);
   };
 
-  // -------------------- Volume / Mute --------------------
+  // -------------------- Volume --------------------
   const handleVolumeChange = (value: number) => {
     const audio = audioRef.current;
     if (!audio) return;
 
     audio.volume = value;
     setVolume(value);
-
     if (value > 0 && isMuted) setIsMuted(false);
   };
 
   const toggleMute = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
     audio.muted = !audio.muted;
     setIsMuted(audio.muted);
   };
@@ -150,6 +152,26 @@ const MusicPlayer = () => {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  // -------------------- Shuffle --------------------
+
+  const displayedTracks: Track[] = isShuffled
+    ? shuffledOrder.map((i) => tracksData[i])
+    : tracksData;
+
+  const toggleShuffle = () => {
+    if (!isShuffled) {
+      // Turning shuffle ON - create shuffled order
+      const indices = tracksData.map((_, i) => i);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      setShuffledOrder(indices);
+    }
+    setIsShuffled(!isShuffled);
+  };
+
+  // -------------------- Render --------------------
   return (
     <div className='min-h-screen flex justify-center items-center bg-gray-100'>
       <audio ref={audioRef} src={currentTrack.audioUrl} preload='metadata' />
@@ -171,14 +193,13 @@ const MusicPlayer = () => {
               </div>
 
               <div className='flex-1 flex flex-col justify-between'>
-                {/* Track Info */}
                 <div className='text-center md:text-left'>
                   <h2 className='text-3xl font-bold text-violet-600 mb-2'>
                     {currentTrack.title}
                   </h2>
                   <p className='text-gray-400'>{currentTrack.artist}</p>
 
-                  {/* Action Buttons */}
+                  {/* Like Button */}
                   <div className='flex items-center justify-center md:justify-start gap-4 mt-6'>
                     <button
                       className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
@@ -189,10 +210,6 @@ const MusicPlayer = () => {
                       onClick={() => setIsLiked(!isLiked)}
                     >
                       <Heart size={20} fill={isLiked ? "currentColor" : ""} />
-                    </button>
-
-                    <button className='px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-full font-semibold hover:shadow-lg hover:shadow-violet-500/50 transition-all duration-300 cursor-pointer'>
-                      Add to Playlist
                     </button>
                   </div>
                 </div>
@@ -212,16 +229,13 @@ const MusicPlayer = () => {
 
                   {/* Visualizer */}
                   <div className='mt-4 mb-6'>
-                    {analyserRef.current ? (
+                    {analyser && (
                       <BarVisualizer
-                        analyser={analyserRef.current!}
+                        analyser={analyser}
                         isPlaying={isPlaying}
                         height={80}
                         barCount={64}
                       />
-                    ) : (
-                      // Optional placeholder while analyser isn’t ready
-                      <div className='h-20 w-full bg-gray-200 rounded-md' />
                     )}
                   </div>
 
@@ -231,7 +245,7 @@ const MusicPlayer = () => {
                       className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
                         isShuffled ? "bg-gray-300" : ""
                       }`}
-                      onClick={() => setIsShuffled(!isShuffled)}
+                      onClick={toggleShuffle} // Changed from setIsShuffled
                     >
                       <Shuffle size={18} />
                     </button>
@@ -269,7 +283,7 @@ const MusicPlayer = () => {
                       )}
                     </button>
 
-                    {/* Volume + Mute */}
+                    {/* Volume */}
                     <div className='flex items-center justify-center gap-2'>
                       <button
                         className='transition-all duration-300 cursor-pointer'
@@ -292,22 +306,19 @@ const MusicPlayer = () => {
             </div>
           </div>
 
-          {/* Playlist Sidebar */}
+          {/* Playlist */}
           <div className='backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl bg-white'>
             <div className='flex items-center justify-between mb-6'>
               <h3 className='text-xl font-bold text-gray-800'>Up Next</h3>
-              <p className='w-8 h-8 bg-gray-900 rounded-full flex items-center justify-center text-gray-100 text-sm font-bold'>
-                Track Length
-              </p>
             </div>
             <div className='space-y-3 h-96 overflow-y-auto overflow-x-hidden'>
               <PlayList
+                tracks={displayedTracks}
                 currentTrackIndex={currentTrackIndex}
                 onSelectTrack={(index) => {
                   setCurrentTrackIndex(index);
-                  setIsPlaying(true); // auto-play selected track
+                  setIsPlaying(true);
                 }}
-                isShuffled={isShuffled}
               />
             </div>
           </div>
