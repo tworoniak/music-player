@@ -1,0 +1,40 @@
+:root {
+  // Colors
+  --color-text: #2b2829;
+  --color-white: #fff;
+  --color-primary: #3576e7;
+  --color-gray: #828f9b;
+  --color-light-gray: #e8ebed;
+  --color-black: #2b2829;
+
+  --background-color: #f2f5f7;
+
+  // Shadows
+  --box-shadow: 0 4px 12px 0 rgb(0 0 0 / 25%);
+
+  // Border Radius
+  --border-radius-sharp: 0;
+  --border-radius-xxs: 4px;
+  --border-radius-xs: 8px;
+  --border-radius-s: 12px;
+  --border-radius-sm: 16px;
+  --border-radius-m: 24px;
+  --border-radius-ml: 32px;
+  --border-radius-l: 48px;
+  --border-radius-xl: 80px;
+  --border-radius-rounded: 999px;
+
+  // Spacing
+  --spacing-base: 16px;
+  --spacing-xxs: 4px;
+  --spacing-xs: 6px;
+  --spacing-s: 8px;
+  --spacing-sm: 12px;
+  --spacing-m: 16px;
+  --spacing-ml: 24px;
+  --spacing-l: 32px;
+  --spacing-xl: 48px;
+
+  // Player Styles
+  --player-background: #c4c4c4;
+}
