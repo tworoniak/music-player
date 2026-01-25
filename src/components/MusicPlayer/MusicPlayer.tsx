@@ -18,15 +18,15 @@ import PlayList from "../PlayList/PlayList";
 import tracks from "../../tracks";
 
 const MusicPlayer = () => {
-  const audioRef = useRef(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const [repeatMode, setRepeatMode] = useState("none");
-  const [isShuffled, setIsShuffled] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  // const [repeatMode, setRepeatMode] = useState("none");
+  // const [isShuffled, setIsShuffled] = useState(false);
+  // const [isLiked, setIsLiked] = useState(false);
 
   const currentTrack = tracks[currentTrackIndex];
 
