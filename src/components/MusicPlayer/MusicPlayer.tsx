@@ -221,10 +221,10 @@ const MusicPlayer = () => {
                     duration={duration || currentTrack.duration}
                     onSeek={handleSeek}
                   />
-
                   <div className='flex justify-between text-sm text-gray-400 mt-2'>
                     <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
+                    <span>{formatTime(duration - currentTime)}</span>{" "}
+                    {/* countdown */}
                   </div>
 
                   {/* Visualizer */}
