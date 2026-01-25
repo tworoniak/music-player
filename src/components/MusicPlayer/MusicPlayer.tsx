@@ -10,42 +10,36 @@ import {
   VolumeX,
   Heart,
 } from "lucide-react";
+
 import ProgressBar from "../ProgressBar/ProgressBar";
 import VolumeControl from "../VolumeControl/VolumeControl";
 import PlayList from "../PlayList/PlayList";
+import BarVisualizer from "../BarVisualizer/BarVisualizer";
 import tracks from "../../tracks";
-
-type RepeatMode = "none" | "one" | "all";
 
 const MusicPlayer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Track / playback states
-  const [currentTrackIndex, setCurrentTrackIndex] = useState<number>(0);
-  const [isPlaying, setIsPlaying] = useState<boolean>(false);
-  const [currentTime, setCurrentTime] = useState<number>(0);
-  const [duration, setDuration] = useState<number>(0);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
 
-  // Volume / mute
-  const [volume, setVolume] = useState<number>(1);
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [repeatMode, setRepeatMode] = useState<"none" | "one" | "all">("none");
+  const [isShuffled, setIsShuffled] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
 
-  // Controls
-  const [repeatMode, setRepeatMode] = useState<RepeatMode>("none");
-  const [isShuffled, setIsShuffled] = useState<boolean>(false);
-  const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+
+  // Lazy AudioContext & Analyser for BarVisualizer
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
 
   const currentTrack = tracks[currentTrackIndex];
 
-  // Sync audio volume and mute
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-      audioRef.current.muted = isMuted;
-    }
-  }, [volume, isMuted]);
-
-  // Update time / duration
+  // -------------------- Audio Event Listeners --------------------
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -62,18 +56,45 @@ const MusicPlayer = () => {
     };
   }, [currentTrackIndex]);
 
-  // Play / Pause
-  const handlePlayPause = () => {
+  // -------------------- Play / Pause --------------------
+  const handlePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (isPlaying) audio.pause();
-    else audio.play();
+    // Lazily create AudioContext + analyser on first play
+    if (!audioContextRef.current) {
+      const audioContext = new (
+        window.AudioContext || (window as any).webkitAudioContext
+      )();
+      const source = audioContext.createMediaElementSource(audio);
+      const analyser = audioContext.createAnalyser();
 
-    setIsPlaying(!isPlaying);
+      source.connect(analyser);
+      analyser.connect(audioContext.destination);
+
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+      sourceRef.current = source;
+    } else if (audioContextRef.current.state === "suspended") {
+      await audioContextRef.current.resume();
+    }
+
+    try {
+      await audio.play(); // User interaction starts playback
+      setIsPlaying(true);
+    } catch (err) {
+      console.log("Playback blocked until user interaction", err);
+    }
   };
 
-  // Previous / Next track
+  const handlePause = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.pause();
+    setIsPlaying(false);
+  };
+
   const handlePrevious = () => {
     const newIndex =
       currentTrackIndex > 0 ? currentTrackIndex - 1 : tracks.length - 1;
@@ -88,99 +109,79 @@ const MusicPlayer = () => {
     setIsPlaying(false);
   };
 
-  // Seek
-  const handleSeek = (time: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time;
-      setCurrentTime(time);
-    }
-  };
-
-  // Repeat toggle
+  // -------------------- Repeat --------------------
   const toggleRepeat = () => {
-    const modes: RepeatMode[] = ["none", "one", "all"];
+    const modes: ("none" | "one" | "all")[] = ["none", "one", "all"];
     const currentIndex = modes.indexOf(repeatMode);
     const nextIndex = (currentIndex + 1) % modes.length;
     setRepeatMode(modes[nextIndex]);
   };
 
-  // Mute toggle
-  const toggleMute = () => {
-    setIsMuted((prev) => !prev);
+  // -------------------- Seek --------------------
+  const handleSeek = (time: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.currentTime = time;
+    setCurrentTime(time);
   };
 
-  // Time formatter
-  const formatTime = (time: number): string => {
+  // -------------------- Volume / Mute --------------------
+  const handleVolumeChange = (value: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.volume = value;
+    setVolume(value);
+
+    if (value > 0 && isMuted) setIsMuted(false);
+  };
+
+  const toggleMute = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.muted = !audio.muted;
+    setIsMuted(audio.muted);
+  };
+
+  const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Keyboard accessibility
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-    switch (e.key) {
-      case " ":
-      case "Spacebar":
-        e.preventDefault();
-        handlePlayPause();
-        break;
-      case "ArrowRight":
-        handleSeek(Math.min(currentTime + 5, duration));
-        break;
-      case "ArrowLeft":
-        handleSeek(Math.max(currentTime - 5, 0));
-        break;
-      case "ArrowUp":
-        setVolume(Math.min(volume + 0.05, 1));
-        if (isMuted) setIsMuted(false);
-        break;
-      case "ArrowDown":
-        setVolume(Math.max(volume - 0.05, 0));
-        if (volume - 0.05 <= 0) setIsMuted(true);
-        break;
-      case "m":
-      case "M":
-        toggleMute();
-        break;
-      default:
-        break;
-    }
-  };
-
   return (
-    <div
-      className='min-h-screen flex justify-center items-center'
-      tabIndex={0} // make div focusable for keyboard
-      onKeyDown={handleKeyDown}
-    >
+    <div className='min-h-screen flex justify-center items-center bg-gray-100'>
       <audio ref={audioRef} src={currentTrack.audioUrl} preload='metadata' />
+
       <div className='w-[1280px] p-6'>
         <div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
           {/* Music Player */}
           <div className='lg:col-span-2 bg-white backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl'>
+            {/* Album + Info */}
             <div className='flex flex-col md:flex-row gap-8'>
               <div className='flex-shrink-0'>
                 <div className='w-64 h-64 mx-auto md:mx-0 rounded-3xl overflow-hidden shadow-2xl transform transition-all duration-500 group-hover:scale-105'>
                   <img
                     src={currentTrack.coverUrl}
-                    className='w-full h-full object-cover'
                     alt={currentTrack.album}
+                    className='w-full h-full object-cover'
                   />
                 </div>
               </div>
 
-              {/* Track Info & Controls */}
               <div className='flex-1 flex flex-col justify-between'>
+                {/* Track Info */}
                 <div className='text-center md:text-left'>
                   <h2 className='text-3xl font-bold text-violet-600 mb-2'>
                     {currentTrack.title}
                   </h2>
                   <p className='text-gray-400'>{currentTrack.artist}</p>
 
+                  {/* Action Buttons */}
                   <div className='flex items-center justify-center md:justify-start gap-4 mt-6'>
                     <button
-                      aria-label={isLiked ? "Unlike Track" : "Like Track"}
-                      className={`p-3 rounded-full transition-all duration-300 border cursor-pointer ${
+                      className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
                         isLiked
                           ? "bg-pink-500 shadow-lg text-white"
                           : "bg-white/10 text-gray-400 hover:text-pink-400"
@@ -189,70 +190,75 @@ const MusicPlayer = () => {
                     >
                       <Heart size={20} fill={isLiked ? "currentColor" : ""} />
                     </button>
-                    <button
-                      className='px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-full font-semibold hover:shadow-lg hover:shadow-violet-500/50 transition-all duration-300 cursor-pointer'
-                      aria-label='Add to Playlist'
-                    >
+
+                    <button className='px-6 py-3 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-full font-semibold hover:shadow-lg hover:shadow-violet-500/50 transition-all duration-300 cursor-pointer'>
                       Add to Playlist
                     </button>
                   </div>
                 </div>
 
-                {/* Progress Section */}
+                {/* Progress + Controls */}
                 <div className='mt-8'>
                   <ProgressBar
                     currentTime={currentTime}
                     duration={duration || currentTrack.duration}
                     onSeek={handleSeek}
                   />
+
                   <div className='flex justify-between text-sm text-gray-400 mt-2'>
                     <span>{formatTime(currentTime)}</span>
-                    <span>
-                      {formatTime(
-                        duration - currentTime || currentTrack.duration,
-                      )}
-                    </span>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+
+                  {/* Visualizer */}
+                  <div className='mt-4 mb-6'>
+                    {analyserRef.current ? (
+                      <BarVisualizer
+                        analyser={analyserRef.current!}
+                        isPlaying={isPlaying}
+                        height={80}
+                        barCount={64}
+                      />
+                    ) : (
+                      // Optional placeholder while analyser isn’t ready
+                      <div className='h-20 w-full bg-gray-200 rounded-md' />
+                    )}
                   </div>
 
                   {/* Control Buttons */}
                   <div className='flex items-center justify-center gap-4 mt-6'>
                     <button
-                      className={`p-3 rounded-full transition-all duration-300 text-dark hover:bg-gray-300 hover:scale-110 cursor-pointer ${
+                      className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
                         isShuffled ? "bg-gray-300" : ""
                       }`}
-                      aria-label='Shuffle'
                       onClick={() => setIsShuffled(!isShuffled)}
                     >
                       <Shuffle size={18} />
                     </button>
 
                     <button
-                      className='p-3 rounded-full transition-all duration-300 text-dark hover:bg-gray-300 hover:scale-110 cursor-pointer'
-                      aria-label='Previous Track'
+                      className='p-3 rounded-full transition-all duration-300 cursor-pointer'
                       onClick={handlePrevious}
                     >
                       <SkipBack size={20} />
                     </button>
 
                     <button
-                      className='p-3 rounded-full transition-all duration-300 text-dark bg-purple-500 text-white hover:bg-purple-600 hover:scale-110 cursor-pointer'
-                      aria-label={isPlaying ? "Pause" : "Play"}
-                      onClick={handlePlayPause}
+                      className='p-3 rounded-full bg-purple-500 text-white transition-all duration-300 cursor-pointer'
+                      onClick={isPlaying ? handlePause : handlePlayPause}
                     >
                       {isPlaying ? <Pause size={28} /> : <Play size={28} />}
                     </button>
 
                     <button
-                      className='p-3 rounded-full transition-all duration-300 text-dark hover:bg-gray-300 hover:scale-110 cursor-pointer'
-                      aria-label='Next Track'
+                      className='p-3 rounded-full transition-all duration-300 cursor-pointer'
                       onClick={handleNext}
                     >
                       <SkipForward size={20} />
                     </button>
 
                     <button
-                      className='relative p-3 rounded-full transition-all duration-300 text-dark hover:bg-gray-300 hover:scale-110 cursor-pointer'
-                      aria-label='Repeat'
+                      className='relative p-3 rounded-full transition-all duration-300 cursor-pointer'
                       onClick={toggleRepeat}
                     >
                       <Repeat size={18} />
@@ -263,12 +269,11 @@ const MusicPlayer = () => {
                       )}
                     </button>
 
-                    {/* Volume Control */}
+                    {/* Volume + Mute */}
                     <div className='flex items-center justify-center gap-2'>
                       <button
-                        className='text-dark hover:scale-110 transition-all duration-300 cursor-pointer'
+                        className='transition-all duration-300 cursor-pointer'
                         onClick={toggleMute}
-                        aria-label={isMuted ? "Unmute" : "Mute"}
                       >
                         {isMuted || volume === 0 ? (
                           <VolumeX size={20} />
@@ -277,11 +282,8 @@ const MusicPlayer = () => {
                         )}
                       </button>
                       <VolumeControl
-                        volume={isMuted ? 0 : volume}
-                        onVolumeChange={(v) => {
-                          setVolume(v);
-                          if (v > 0 && isMuted) setIsMuted(false);
-                        }}
+                        volume={volume}
+                        onVolumeChange={handleVolumeChange}
                       />
                     </div>
                   </div>
@@ -298,8 +300,15 @@ const MusicPlayer = () => {
                 Track Length
               </p>
             </div>
-            <div className='space-7-3 h-96 overflow-y-auto overflow-x-hidden'>
-              <PlayList />
+            <div className='space-y-3 h-96 overflow-y-auto overflow-x-hidden'>
+              <PlayList
+                currentTrackIndex={currentTrackIndex}
+                onSelectTrack={(index) => {
+                  setCurrentTrackIndex(index);
+                  setIsPlaying(true); // auto-play selected track
+                }}
+                isShuffled={isShuffled}
+              />
             </div>
           </div>
         </div>
