@@ -58,8 +58,58 @@ const MusicPlayer = () => {
     };
   }, [currentTrackIndex]);
 
-  // -------------------- Play / Pause --------------------
+  // -------------------- Auto-advance --------------------
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
+    const handleEnded = async () => {
+      if (repeatMode === "one") {
+        audio.currentTime = 0;
+        await audio.play();
+        return;
+      }
+
+      let nextIndex: number;
+
+      if (isShuffled) {
+        const currentShuffledIndex = shuffledOrder.indexOf(currentTrackIndex);
+        if (currentShuffledIndex < shuffledOrder.length - 1) {
+          nextIndex = shuffledOrder[currentShuffledIndex + 1];
+        } else {
+          nextIndex =
+            repeatMode === "all" ? shuffledOrder[0] : currentTrackIndex;
+        }
+      } else {
+        if (currentTrackIndex < tracksData.length - 1) {
+          nextIndex = currentTrackIndex + 1;
+        } else {
+          nextIndex = repeatMode === "all" ? 0 : currentTrackIndex;
+        }
+      }
+
+      if (nextIndex !== currentTrackIndex) {
+        setCurrentTrackIndex(nextIndex);
+        setIsPlaying(true);
+
+        // Wait a tick so React updates the audio element src, then play
+        setTimeout(() => {
+          audio.play().catch(() => {
+            // autoplay might be blocked by browser until user interacts
+          });
+        }, 0);
+      } else if (repeatMode === "none") {
+        setIsPlaying(false);
+      }
+    };
+
+    audio.addEventListener("ended", handleEnded);
+    return () => {
+      audio.removeEventListener("ended", handleEnded);
+    };
+  }, [currentTrackIndex, isShuffled, shuffledOrder, repeatMode]);
+
+  // -------------------- Play / Pause --------------------
   const handlePlayPause = async () => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -84,7 +134,7 @@ const MusicPlayer = () => {
 
       audioContextRef.current = audioContext;
       analyserRef.current = analyserNode;
-      setAnalyser(analyserNode); // Add this line
+      setAnalyser(analyserNode);
     } else if (audioContextRef.current.state === "suspended") {
       await audioContextRef.current.resume();
     }
@@ -133,7 +183,6 @@ const MusicPlayer = () => {
   const handleVolumeChange = (value: number) => {
     const audio = audioRef.current;
     if (!audio) return;
-
     audio.volume = value;
     setVolume(value);
     if (value > 0 && isMuted) setIsMuted(false);
@@ -153,14 +202,12 @@ const MusicPlayer = () => {
   };
 
   // -------------------- Shuffle --------------------
-
   const displayedTracks: Track[] = isShuffled
     ? shuffledOrder.map((i) => tracksData[i])
     : tracksData;
 
   const toggleShuffle = () => {
     if (!isShuffled) {
-      // Turning shuffle ON - create shuffled order
       const indices = tracksData.map((_, i) => i);
       for (let i = indices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -223,8 +270,7 @@ const MusicPlayer = () => {
                   />
                   <div className='flex justify-between text-sm text-gray-400 mt-2'>
                     <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration - currentTime)}</span>{" "}
-                    {/* countdown */}
+                    <span>{formatTime(duration - currentTime)}</span>
                   </div>
 
                   {/* Visualizer */}
@@ -245,7 +291,7 @@ const MusicPlayer = () => {
                       className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
                         isShuffled ? "bg-gray-300" : ""
                       }`}
-                      onClick={toggleShuffle} // Changed from setIsShuffled
+                      onClick={toggleShuffle}
                     >
                       <Shuffle size={18} />
                     </button>
