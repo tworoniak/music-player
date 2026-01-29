@@ -5,7 +5,8 @@ import MusicPlayer from "./components/MusicPlayer/MusicPlayer";
 
 function App() {
   return (
-    <div className='max-h-screen bg-gray-300 overflow-hidden shadow-md'>
+    <div className='bg-gray-300 overflow-hidden shadow-md'>
+      {/* //max-h-screen */}
       <MusicPlayer />
     </div>
   );

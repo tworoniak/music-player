@@ -49,7 +49,7 @@ const VolumeControl = ({ volume, onVolumeChange }: VolumeControlProps) => {
   return (
     <div
       ref={sliderRef}
-      className='relative w-28 h-3 bg-gray-300 rounded-full cursor-pointer'
+      className='relative w-full h-3 bg-gray-300 rounded-full cursor-pointer'
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
