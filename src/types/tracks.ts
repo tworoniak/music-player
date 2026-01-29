@@ -45,6 +45,15 @@ const tracksData: Track[] = [
     coverUrl: "/images/Opeth_Sorceress_PromoCover_revised.jpg",
     audioUrl: "/music/02_Sorceress.mp3",
   },
+  {
+    id: 5,
+    title: "Majestic Sonata",
+    artist: "Classical",
+    album: "Classical",
+    duration: 300,
+    coverUrl: "/images/47b971c8-50b5-453c-b052-6b3937259ed0_Classical.jpeg",
+    audioUrl: "/music/Majestic_Sonata_FULL_SONG_MusicGPT.mp3",
+  },
 ];
 
 export default tracksData;
