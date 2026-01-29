@@ -286,51 +286,54 @@ const MusicPlayer = () => {
                   </div>
 
                   {/* Control Buttons */}
-                  <div className='flex items-center justify-center gap-4 mt-6'>
-                    <button
-                      className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
-                        isShuffled ? "bg-gray-300" : ""
-                      }`}
-                      onClick={toggleShuffle}
-                    >
-                      <Shuffle size={18} />
-                    </button>
+                  <div className='flex flex-col items-center justify-center gap-4 mt-6'>
+                    {/* Player Controls */}
+                    <div className='flex items-center justify-center gap-4 mt-6'>
+                      <button
+                        className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
+                          isShuffled ? "bg-gray-300" : ""
+                        }`}
+                        onClick={toggleShuffle}
+                      >
+                        <Shuffle size={18} />
+                      </button>
 
-                    <button
-                      className='p-3 rounded-full transition-all duration-300 cursor-pointer'
-                      onClick={handlePrevious}
-                    >
-                      <SkipBack size={20} />
-                    </button>
+                      <button
+                        className='p-3 rounded-full transition-all duration-300 cursor-pointer'
+                        onClick={handlePrevious}
+                      >
+                        <SkipBack size={20} />
+                      </button>
 
-                    <button
-                      className='p-3 rounded-full bg-purple-500 text-white transition-all duration-300 cursor-pointer'
-                      onClick={isPlaying ? handlePause : handlePlayPause}
-                    >
-                      {isPlaying ? <Pause size={28} /> : <Play size={28} />}
-                    </button>
+                      <button
+                        className='p-3 rounded-full bg-purple-500 text-white transition-all duration-300 cursor-pointer'
+                        onClick={isPlaying ? handlePause : handlePlayPause}
+                      >
+                        {isPlaying ? <Pause size={28} /> : <Play size={28} />}
+                      </button>
 
-                    <button
-                      className='p-3 rounded-full transition-all duration-300 cursor-pointer'
-                      onClick={handleNext}
-                    >
-                      <SkipForward size={20} />
-                    </button>
+                      <button
+                        className='p-3 rounded-full transition-all duration-300 cursor-pointer'
+                        onClick={handleNext}
+                      >
+                        <SkipForward size={20} />
+                      </button>
 
-                    <button
-                      className='relative p-3 rounded-full transition-all duration-300 cursor-pointer'
-                      onClick={toggleRepeat}
-                    >
-                      <Repeat size={18} />
-                      {repeatMode === "one" && (
-                        <span className='absolute -top-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center font-bold text-xs text-white'>
-                          1
-                        </span>
-                      )}
-                    </button>
+                      <button
+                        className='relative p-3 rounded-full transition-all duration-300 cursor-pointer'
+                        onClick={toggleRepeat}
+                      >
+                        <Repeat size={18} />
+                        {repeatMode === "one" && (
+                          <span className='absolute -top-1 -right-1 w-4 h-4 bg-purple-600 rounded-full flex items-center justify-center font-bold text-xs text-white'>
+                            1
+                          </span>
+                        )}
+                      </button>
+                    </div>
 
                     {/* Volume */}
-                    <div className='flex items-center justify-center gap-2'>
+                    <div className='flex items-center justify-center gap-2 mt-6 w-full'>
                       <button
                         className='transition-all duration-300 cursor-pointer'
                         onClick={toggleMute}
