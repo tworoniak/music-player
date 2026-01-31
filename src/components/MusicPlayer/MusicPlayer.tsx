@@ -220,7 +220,7 @@ const MusicPlayer = () => {
 
   // -------------------- Render --------------------
   return (
-    <div className='min-h-screen flex justify-center items-center bg-gray-100'>
+    <div className='min-h-screen flex justify-center items-center bg-gray-900'>
       <audio ref={audioRef} src={currentTrack.audioUrl} preload='metadata' />
 
       <div className='w-[1280px] p-6'>
