@@ -1,75 +1,60 @@
-# React + TypeScript + Vite
+# 🎵 Music Player (React + TypeScript)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, responsive **music player web app** built with **React + TypeScript**, styled with **TailwindCSS**, and designed as a portfolio-quality project showcasing UI state management, playback controls, and component-driven architecture.
 
-Currently, two official plugins are available:
+This project is actively evolving and will continue expanding with playlist management, audio visualizers, and advanced player features.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+---
 
-## React Compiler
+## 🚀 Live Demo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+👉 **Live Site:** https://music-player-sigma-puce.vercel.app/
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## ✨ Features
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+### 🎧 Playback
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- Play / Pause controls
+- Track switching (Next / Previous)
+- Playback progress bar
+- Track duration and time tracking
+- Volume control + mute toggle _(planned)_
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+### 📃 Playlist & UI
+
+- Playlist view / track list
+- Active track highlighting
+- Responsive layout for mobile + desktop
+- Modern UI icons using `lucide-react`
+
+### 🎨 Styling
+
+- TailwindCSS utility styling
+- Sass support included
+- CoreUI React components used where helpful
+
+---
+
+## 🛠 Tech Stack
+
+- **React 19**
+- **TypeScript**
+- **Vite**
+- **TailwindCSS**
+- **Sass**
+- **CoreUI React**
+- **Lucide React (icons)**
+- **rc-progress** (progress bar UI)
+
+---
+
+## 📦 Installation & Setup
+
+Clone the repo:
+
+```bash
+git clone https://github.com/tworoniak/music-player.git
+cd music-player
 ```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
-
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
-
-// Updates
