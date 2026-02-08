@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from 'react';
 
 type ProgressBarProps = {
   currentTime: number;
@@ -53,20 +53,20 @@ const ProgressBar = ({ currentTime, duration, onSeek }: ProgressBarProps) => {
   useEffect(() => {
     if (!isDragging) return;
     const handleGlobalMouseUp = () => setIsDragging(false);
-    window.addEventListener("mouseup", handleGlobalMouseUp);
-    return () => window.removeEventListener("mouseup", handleGlobalMouseUp);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+    return () => window.removeEventListener('mouseup', handleGlobalMouseUp);
   }, [isDragging]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
     <div
       ref={progressRef}
-      className='relative w-full h-3 rounded-full bg-gray-300 cursor-pointer'
+      className='relative w-full h-3 rounded-full bg-accent cursor-pointer'
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -74,14 +74,14 @@ const ProgressBar = ({ currentTime, duration, onSeek }: ProgressBarProps) => {
     >
       {/* Filled progress */}
       <div
-        className='absolute left-0 top-0 h-full bg-gray-600 rounded-full transition-all duration-150'
+        className='absolute left-0 top-0 h-full bg-accent2 rounded-full transition-all duration-150'
         style={{ width: `${progressPercent}%` }}
       />
 
       {/* Thumb */}
       <div
-        className={`absolute top-1/2 w-5 h-5 bg-white border-2 border-pink-500 rounded-full shadow-lg transform -translate-y-1/2 transition-all duration-150 ${
-          isDragging ? "scale-125 shadow-pink-500/50" : "scale-100"
+        className={`absolute top-1/2 w-5 h-5 bg-white border-2 border-background rounded-full shadow-lg transform -translate-y-1/2 transition-all duration-150 ${
+          isDragging ? 'scale-125 shadow-accent/50' : 'scale-100'
         }`}
         style={{ left: `calc(${progressPercent}% - 10px)` }}
       />
