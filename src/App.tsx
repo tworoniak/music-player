@@ -1,11 +1,11 @@
 // import React from "react";
 
 // import "./App.css";
-import MusicPlayer from "./components/MusicPlayer/MusicPlayer";
+import MusicPlayer from './components/MusicPlayer/MusicPlayer';
 
 function App() {
   return (
-    <div className='bg-gray-700 overflow-hidden shadow-md'>
+    <div className='bg-background overflow-hidden shadow-md'>
       <MusicPlayer />
     </div>
   );

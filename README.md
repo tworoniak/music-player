@@ -20,7 +20,9 @@ This project is actively evolving and will continue expanding with playlist mana
 - Track switching (Next / Previous)
 - Playback progress bar
 - Track duration and time tracking
-- Volume control + mute toggle _(planned)_
+- Volume control slider + mute toggle
+- Shuffle mode
+- Repeat mode (repeat one / repeat all)
 
 ### 📃 Playlist & UI
 
@@ -34,6 +36,26 @@ This project is actively evolving and will continue expanding with playlist mana
 - TailwindCSS utility styling
 - Sass support included
 - CoreUI React components used where helpful
+
+### 🖥️ Media Session API Support
+
+This app supports the **Media Session API**, enabling:
+
+- OS-level play/pause/skip controls
+- Keyboard media key support
+- Track metadata display in system UI
+
+---
+
+## 🔥 Roadmap / Planned Features
+
+### Phase 1 — Core Player Improvements
+
+- [ ] Keyboard shortcuts (space, arrows, volume keys)
+- [ ] Media Session API support (OS-level playback controls)
+- [ ] Mini-player / persistent bottom bar UI
+- [ ] Better mobile playback UX
+- [ ] Better track metadata display (artist/album)
 
 ---
 
