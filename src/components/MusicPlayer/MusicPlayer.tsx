@@ -169,7 +169,7 @@ const MusicPlayer = () => {
           {/* Playlist */}
           <div className='backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl bg-surface/50'>
             <div className='flex items-center justify-between mb-6'>
-              <h3 className='text-xl font-bold text-gray-800'>Up Next</h3>
+              <h3 className='text-xl font-bold text-text'>Up Next</h3>
             </div>
 
             <div className='space-y-3 h-96 overflow-y-auto overflow-x-hidden'>
