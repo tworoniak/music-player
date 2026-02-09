@@ -9,6 +9,7 @@ module.exports = {
         border: '#22222A',
 
         playerBackground: '#030504',
+        fillColor: '#e9f5db',
 
         text: '#F5F5F5',
         muted: '#C9C9D1',

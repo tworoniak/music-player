@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef } from 'react';
 
 type BarVisualizerProps = {
   analyser: AnalyserNode;
@@ -19,7 +19,7 @@ const BarVisualizer = ({
   useEffect(() => {
     if (!canvasRef.current) return;
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const resizeCanvas = () => {
@@ -28,7 +28,7 @@ const BarVisualizer = ({
     };
 
     resizeCanvas();
-    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener('resize', resizeCanvas);
 
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
 
@@ -43,7 +43,7 @@ const BarVisualizer = ({
       analyser.getByteFrequencyData(dataArray);
 
       // Fading trail
-      ctx.fillStyle = "rgba(255, 255, 255, 0.03)";
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const step = Math.floor(dataArray.length / barCount);
@@ -82,19 +82,19 @@ const BarVisualizer = ({
 
       // Reset shadow
       ctx.shadowBlur = 0;
-      ctx.shadowColor = "transparent";
+      ctx.shadowColor = 'transparent';
     };
 
     draw();
 
-    return () => window.removeEventListener("resize", resizeCanvas);
+    return () => window.removeEventListener('resize', resizeCanvas);
   }, [analyser, height, isPlaying, barCount]);
 
   return (
     <canvas
       ref={canvasRef}
       className='w-full block rounded-md'
-      style={{ background: "transparent" }}
+      style={{ background: 'transparent' }}
     />
   );
 };

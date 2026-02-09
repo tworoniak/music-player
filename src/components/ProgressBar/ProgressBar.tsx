@@ -74,13 +74,13 @@ const ProgressBar = ({ currentTime, duration, onSeek }: ProgressBarProps) => {
     >
       {/* Filled progress */}
       <div
-        className='absolute left-0 top-0 h-full bg-accent2 rounded-full transition-all duration-150'
+        className='absolute left-0 top-0 h-full bg-fillColor rounded-full transition-all duration-150'
         style={{ width: `${progressPercent}%` }}
       />
 
       {/* Thumb */}
       <div
-        className={`absolute top-1/2 w-5 h-5 bg-white border-2 border-background rounded-full shadow-lg transform -translate-y-1/2 transition-all duration-150 ${
+        className={`absolute top-1/2 w-5 h-5 bg-surface border-2 border-background rounded-full shadow-lg transform -translate-y-1/2 transition-all duration-150 ${
           isDragging ? 'scale-125 shadow-accent/50' : 'scale-100'
         }`}
         style={{ left: `calc(${progressPercent}% - 10px)` }}
