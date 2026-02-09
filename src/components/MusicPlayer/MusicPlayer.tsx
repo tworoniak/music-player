@@ -9,7 +9,6 @@ import {
   VolumeX,
   Heart,
 } from 'lucide-react';
-import { useState } from 'react';
 
 import ProgressBar from '../ProgressBar/ProgressBar';
 import VolumeControl from '../VolumeControl/VolumeControl';
@@ -19,7 +18,6 @@ import { usePlayer } from '../../context/PlayerContext';
 
 const MusicPlayer = () => {
   const p = usePlayer();
-  const [isLiked, setIsLiked] = useState(false);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -28,6 +26,7 @@ const MusicPlayer = () => {
   };
 
   const safeDuration = p.duration || p.currentTrack.duration || 0;
+  const liked = p.isLiked(p.currentTrack.id);
 
   return (
     <div className='min-h-screen flex justify-center items-center bg-photo-gradient'>
@@ -54,17 +53,18 @@ const MusicPlayer = () => {
                   </h2>
                   <p className='text-muted'>{p.currentTrack.artist}</p>
 
-                  {/* Like Button (UI-only for now) */}
+                  {/* Like Button */}
                   <div className='flex items-center justify-center md:justify-start gap-4 mt-6'>
                     <button
                       className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
-                        isLiked
+                        liked
                           ? 'bg-pink-500 shadow-lg text-white'
                           : 'bg-white/10 text-gray-400 hover:text-pink-400'
                       }`}
-                      onClick={() => setIsLiked(!isLiked)}
+                      onClick={() => p.toggleLike(p.currentTrack.id)}
+                      aria-label={liked ? 'Unlike' : 'Like'}
                     >
-                      <Heart size={20} fill={isLiked ? 'currentColor' : ''} />
+                      <Heart size={20} fill={liked ? 'currentColor' : 'none'} />
                     </button>
                   </div>
                 </div>
@@ -100,17 +100,19 @@ const MusicPlayer = () => {
                   <div className='flex flex-col items-center justify-center gap-4 mt-6'>
                     <div className='flex items-center justify-center gap-4 mt-6'>
                       <button
-                        className={`p-3 rounded-full transition-all duration-300 cursor-pointer ${
+                        className={`p-3 rounded-full transition-all duration-300 cursor-pointer  border border-accent hover:border-accent2 ${
                           p.isShuffled ? 'bg-surface' : ''
                         }`}
                         onClick={p.toggleShuffle}
+                        aria-label='Shuffle'
                       >
                         <Shuffle size={18} />
                       </button>
 
                       <button
-                        className='p-3 rounded-full transition-all duration-300 cursor-pointer'
+                        className='p-3 rounded-full transition-all duration-300 cursor-pointer border border-accent hover:border-accent2'
                         onClick={p.previous}
+                        aria-label='Previous'
                       >
                         <SkipBack size={20} />
                       </button>
@@ -118,20 +120,23 @@ const MusicPlayer = () => {
                       <button
                         className='p-3 rounded-full bg-surface text-white transition-all duration-300 cursor-pointer'
                         onClick={p.togglePlayPause}
+                        aria-label={p.isPlaying ? 'Pause' : 'Play'}
                       >
                         {p.isPlaying ? <Pause size={28} /> : <Play size={28} />}
                       </button>
 
                       <button
-                        className='p-3 rounded-full transition-all duration-300 cursor-pointer'
+                        className='p-3 rounded-full transition-all duration-300 cursor-pointer border border-accent hover:border-accent2'
                         onClick={p.next}
+                        aria-label='Next'
                       >
                         <SkipForward size={20} />
                       </button>
 
                       <button
-                        className='relative p-3 rounded-full transition-all duration-300 cursor-pointer'
+                        className='relative p-3 rounded-full transition-all duration-300 cursor-pointer border border-accent hover:border-accent2'
                         onClick={p.toggleRepeat}
+                        aria-label='Repeat'
                       >
                         <Repeat size={18} />
                         {p.repeatMode === 'one' && (
@@ -147,6 +152,7 @@ const MusicPlayer = () => {
                       <button
                         className='transition-all duration-300 cursor-pointer'
                         onClick={p.toggleMute}
+                        aria-label={p.isMuted ? 'Unmute' : 'Mute'}
                       >
                         {p.isMuted || p.volume === 0 ? (
                           <VolumeX size={20} />

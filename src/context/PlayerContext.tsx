@@ -22,6 +22,10 @@ export type PlayerContextValue = {
 
   analyser: AnalyserNode | null;
 
+  likedIds: Set<number>;
+  isLiked: (trackId: number) => boolean;
+  toggleLike: (trackId: number) => void;
+
   play: () => void;
   pause: () => void;
   togglePlayPause: () => void;
@@ -38,6 +42,7 @@ export type PlayerContextValue = {
   toggleShuffle: () => void;
 
   selectDisplayedTrack: (displayIndex: number) => void;
+  selectTrackByIndex: (index: number) => void;
 };
 
 export const PlayerContext = createContext<PlayerContextValue | null>(null);
