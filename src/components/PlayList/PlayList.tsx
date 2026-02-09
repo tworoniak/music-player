@@ -33,8 +33,14 @@ const PlayList = ({
             }`}
           >
             {/* Track number or play icon */}
-            <div className='w-6 shrink-0 flex items-center justify-center'>
-              {isActive ? <Play size={16} /> : index + 1}
+            <div
+              className={`rounded-full border px-2 py-2 ${isActive ? 'bg-accent2 py-3' : ''}`}
+            >
+              <div
+                className={`w-6 shrink-0 flex items-center justify-center ${isActive ? 'text-matteBlack' : ''} `}
+              >
+                {isActive ? <Play size={16} /> : index + 1}
+              </div>
             </div>
 
             {/* Track info */}

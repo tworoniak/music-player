@@ -35,6 +35,9 @@ const BarVisualizer = ({
     const draw = () => {
       requestAnimationFrame(draw);
 
+      // Always clear every frame so the canvas stays transparent
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
       if (!isPlaying) {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         return;
@@ -43,8 +46,9 @@ const BarVisualizer = ({
       analyser.getByteFrequencyData(dataArray);
 
       // Fading trail
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+      // ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       const step = Math.floor(dataArray.length / barCount);
       const barWidth = canvas.width / barCount - 2; // 2px spacing
@@ -93,8 +97,8 @@ const BarVisualizer = ({
   return (
     <canvas
       ref={canvasRef}
-      className='w-full block rounded-md'
-      style={{ background: 'transparent' }}
+      className='w-full block rounded-md bg-transparent!'
+      // style={{ background: 'transparent' }}
     />
   );
 };
