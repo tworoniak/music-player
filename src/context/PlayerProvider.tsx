@@ -22,6 +22,7 @@ type PersistedPlayerState = {
   isMuted: boolean;
   isShuffled: boolean;
   shuffledOrder: number[];
+  likedIds?: number[];
 };
 
 function clamp(n: number, min: number, max: number) {
@@ -43,6 +44,11 @@ function isPersistedState(x: unknown): x is PersistedPlayerState {
   const repeatModeOk =
     o.repeatMode === 'none' || o.repeatMode === 'one' || o.repeatMode === 'all';
 
+  const likedOk =
+    o.likedIds === undefined ||
+    (Array.isArray(o.likedIds) &&
+      o.likedIds.every((n) => typeof n === 'number'));
+
   return (
     typeof o.currentTrackIndex === 'number' &&
     repeatModeOk &&
@@ -50,7 +56,8 @@ function isPersistedState(x: unknown): x is PersistedPlayerState {
     typeof o.isMuted === 'boolean' &&
     typeof o.isShuffled === 'boolean' &&
     Array.isArray(o.shuffledOrder) &&
-    o.shuffledOrder.every((n) => typeof n === 'number')
+    o.shuffledOrder.every((n) => typeof n === 'number') &&
+    likedOk
   );
 }
 
@@ -72,6 +79,7 @@ function loadPersistedState(trackCount: number): PersistedPlayerState | null {
     isMuted: parsed.isMuted,
     isShuffled: parsed.isShuffled,
     shuffledOrder: parsed.shuffledOrder,
+    likedIds: Array.isArray(parsed.likedIds) ? parsed.likedIds : [],
   };
 }
 
@@ -101,6 +109,26 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     [tracks.length],
   );
 
+  // --- Likes ---
+  const [likedIds, setLikedIds] = useState<Set<number>>(
+    () => new Set(persisted?.likedIds ?? []),
+  );
+
+  const isLiked = useCallback(
+    (trackId: number) => likedIds.has(trackId),
+    [likedIds],
+  );
+
+  const toggleLike = useCallback((trackId: number) => {
+    setLikedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(trackId)) next.delete(trackId);
+      else next.add(trackId);
+      return next;
+    });
+  }, []);
+
+  // --- Shuffle init ---
   const initialShuffledOrder = persisted?.isShuffled
     ? persisted.shuffledOrder.length === tracks.length
       ? persisted.shuffledOrder
@@ -137,6 +165,16 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const displayedTracks: Track[] = useMemo(() => {
     return isShuffled ? shuffledOrder.map((i) => tracks[i]) : tracks;
   }, [isShuffled, shuffledOrder, tracks]);
+
+  // ✅ direct selection by real index (needed for Liked page)
+  const selectTrackByIndex = useCallback(
+    (index: number) => {
+      if (index < 0 || index >= tracks.length) return;
+      setCurrentTrackIndex(index);
+      setIsPlaying(true);
+    },
+    [tracks.length],
+  );
 
   // -------------------- ensureAudioGraph --------------------
   const ensureAudioGraph = useCallback(async () => {
@@ -241,6 +279,7 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
         isMuted,
         isShuffled,
         shuffledOrder,
+        likedIds: Array.from(likedIds),
       });
     }, 250);
 
@@ -252,47 +291,77 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     isMuted,
     isShuffled,
     shuffledOrder,
+    likedIds,
   ]);
 
-  // ended behavior
+  // -------------------- Fix Repeat Reliability --------------------
+  // Use refs so the 'ended' event always sees the latest state (avoids stale closures)
+  const repeatModeRef = useRef(repeatMode);
+  const isShuffledRef = useRef(isShuffled);
+  const shuffledOrderRef = useRef(shuffledOrder);
+  const currentTrackIndexRef = useRef(currentTrackIndex);
+
+  useEffect(() => {
+    repeatModeRef.current = repeatMode;
+  }, [repeatMode]);
+
+  useEffect(() => {
+    isShuffledRef.current = isShuffled;
+  }, [isShuffled]);
+
+  useEffect(() => {
+    shuffledOrderRef.current = shuffledOrder;
+  }, [shuffledOrder]);
+
+  useEffect(() => {
+    currentTrackIndexRef.current = currentTrackIndex;
+  }, [currentTrackIndex]);
+
+  // ended behavior (stable listener)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const onEnded = () => {
-      if (repeatMode === 'one') {
+      const mode = repeatModeRef.current;
+      const shuffled = isShuffledRef.current;
+      const order = shuffledOrderRef.current;
+      const idx = currentTrackIndexRef.current;
+
+      // Repeat ONE: restart same track immediately
+      if (mode === 'one') {
         audio.currentTime = 0;
         setIsPlaying(true);
+        void audio.play().catch(() => {});
         return;
       }
 
-      let nextIndex = currentTrackIndex;
+      let nextIndex = idx;
 
-      if (isShuffled && shuffledOrder.length) {
-        const pos = shuffledOrder.indexOf(currentTrackIndex);
-        const isLast = pos >= shuffledOrder.length - 1;
+      if (shuffled && order.length) {
+        const pos = order.indexOf(idx);
+        const isLast = pos >= order.length - 1;
 
-        if (!isLast) nextIndex = shuffledOrder[pos + 1];
-        else
-          nextIndex =
-            repeatMode === 'all' ? shuffledOrder[0] : currentTrackIndex;
+        if (!isLast) nextIndex = order[pos + 1];
+        else nextIndex = mode === 'all' ? order[0] : idx;
       } else {
-        const isLast = currentTrackIndex >= tracks.length - 1;
-        if (!isLast) nextIndex = currentTrackIndex + 1;
-        else nextIndex = repeatMode === 'all' ? 0 : currentTrackIndex;
+        const isLast = idx >= tracks.length - 1;
+        if (!isLast) nextIndex = idx + 1;
+        else nextIndex = mode === 'all' ? 0 : idx;
       }
 
-      if (nextIndex !== currentTrackIndex) {
+      if (nextIndex !== idx) {
         setCurrentTrackIndex(nextIndex);
         setIsPlaying(true);
-      } else if (repeatMode === 'none') {
+      } else {
+        // mode === 'none' on last track
         setIsPlaying(false);
       }
     };
 
     audio.addEventListener('ended', onEnded);
     return () => audio.removeEventListener('ended', onEnded);
-  }, [currentTrackIndex, isShuffled, shuffledOrder, repeatMode, tracks.length]);
+  }, [tracks.length]);
 
   // -------------------- actions --------------------
   const play = useCallback(() => {
@@ -458,6 +527,15 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       volume,
       isMuted,
       analyser,
+
+      // ✅ favorites
+      likedIds,
+      isLiked,
+      toggleLike,
+
+      // ✅ direct selection
+      selectTrackByIndex,
+
       play,
       pause,
       togglePlayPause,
@@ -484,6 +562,10 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
       volume,
       isMuted,
       analyser,
+      likedIds,
+      isLiked,
+      toggleLike,
+      selectTrackByIndex,
       play,
       pause,
       togglePlayPause,
