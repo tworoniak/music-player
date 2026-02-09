@@ -1,5 +1,6 @@
 import { Outlet, useNavigate } from 'react-router-dom';
 import MiniPlayer from '../components/player/MiniPlayer';
+import Header from '../components/Header';
 import { usePlayer } from '../context/PlayerContext';
 
 export default function AppLayout() {
@@ -8,6 +9,7 @@ export default function AppLayout() {
 
   return (
     <div className='min-h-screen pb-24'>
+      <Header />
       <Outlet />
 
       <MiniPlayer
