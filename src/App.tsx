@@ -1,14 +1,19 @@
-// import React from "react";
+import { Navigate, Route, Routes } from 'react-router-dom';
+import Home from './pages/Home';
+import NowPlaying from './pages/NowPlaying';
+import AppLayout from './layouts/AppLayout';
+import { PlayerProvider } from './context/PlayerProvider';
 
-// import "./App.css";
-import MusicPlayer from './components/MusicPlayer/MusicPlayer';
-
-function App() {
+export default function App() {
   return (
-    <div className='bg-background overflow-hidden shadow-md'>
-      <MusicPlayer />
-    </div>
+    <PlayerProvider>
+      <Routes>
+        <Route element={<AppLayout />}>
+          <Route path='/' element={<Home />} />
+          <Route path='/now-playing' element={<NowPlaying />} />
+          <Route path='*' element={<Navigate to='/' replace />} />
+        </Route>
+      </Routes>
+    </PlayerProvider>
   );
 }
-
-export default App;

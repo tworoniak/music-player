@@ -27,7 +27,9 @@ const PlayList = ({
             key={track.id}
             onClick={() => onSelectTrack(index)}
             className={`group flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all duration-300 ${
-              isActive ? 'bg-accent/50' : 'hover:bg-accent/50'
+              isActive
+                ? 'bg-accent/50 border border-accent'
+                : 'hover:bg-accent/50'
             }`}
           >
             {/* Track number or play icon */}
