@@ -79,6 +79,15 @@ function savePersistedState(state: PersistedPlayerState) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
+function makeShuffledOrder(length: number) {
+  const indices = Array.from({ length }, (_, i) => i);
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [indices[i], indices[j]] = [indices[j], indices[i]];
+  }
+  return indices;
+}
+
 // -------------------- Provider --------------------
 export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -91,6 +100,12 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     () => loadPersistedState(tracks.length),
     [tracks.length],
   );
+
+  const initialShuffledOrder = persisted?.isShuffled
+    ? persisted.shuffledOrder.length === tracks.length
+      ? persisted.shuffledOrder
+      : makeShuffledOrder(tracks.length)
+    : [];
 
   // persisted-backed state
   const [currentTrackIndex, setCurrentTrackIndex] = useState(
@@ -105,9 +120,8 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
   const [isMuted, setIsMuted] = useState(persisted?.isMuted ?? false);
 
   const [isShuffled, setIsShuffled] = useState(persisted?.isShuffled ?? false);
-  const [shuffledOrder, setShuffledOrder] = useState<number[]>(
-    persisted?.shuffledOrder ?? [],
-  );
+  const [shuffledOrder, setShuffledOrder] =
+    useState<number[]>(initialShuffledOrder);
 
   // non-persisted state
   const [isPlaying, setIsPlaying] = useState(false);
@@ -239,28 +253,6 @@ export function PlayerProvider({ children }: { children: React.ReactNode }) {
     isShuffled,
     shuffledOrder,
   ]);
-
-  function makeShuffledOrder(length: number) {
-    const indices = Array.from({ length }, (_, i) => i);
-    for (let i = indices.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [indices[i], indices[j]] = [indices[j], indices[i]];
-    }
-    return indices;
-  }
-
-  // Ensure shuffledOrder is valid when shuffle is ON
-  //   useEffect(() => {
-  //     if (!isShuffled) return;
-  //     if (shuffledOrder.length === tracks.length) return;
-
-  //     const indices = tracks.map((_, i) => i);
-  //     for (let i = indices.length - 1; i > 0; i--) {
-  //       const j = Math.floor(Math.random() * (i + 1));
-  //       [indices[i], indices[j]] = [indices[j], indices[i]];
-  //     }
-  //     setShuffledOrder(indices);
-  //   }, [isShuffled, shuffledOrder.length, tracks]);
 
   // ended behavior
   useEffect(() => {

@@ -1,8 +1,8 @@
 # 🎵 Music Player (React + TypeScript)
 
-A modern, responsive **music player web app** built with **React + TypeScript**, styled with **TailwindCSS**, and designed as a portfolio-quality project showcasing UI state management, playback controls, and component-driven architecture.
+A modern, responsive **music player web app** built with **React + TypeScript**, styled with **TailwindCSS**, and designed as a portfolio-quality project showcasing **state management**, **audio playback controls**, and a clean component-driven architecture.
 
-This project is actively evolving and will continue expanding with playlist management, audio visualizers, and advanced player features.
+This project is actively evolving and will continue expanding with richer playlist features, UI enhancements, and advanced player functionality.
 
 ---
 
@@ -14,28 +14,43 @@ This project is actively evolving and will continue expanding with playlist mana
 
 ## ✨ Features
 
-### 🎧 Playback
+### 🎧 Playback Controls
 
-- Play / Pause controls
-- Track switching (Next / Previous)
-- Playback progress bar
-- Track duration and time tracking
-- Volume control slider + mute toggle
+- Play / Pause
+- Next / Previous track navigation
+- Playback progress bar (seekable)
+- Current time + remaining time display
+- Volume slider control
+- Mute toggle
 - Shuffle mode
 - Repeat mode (repeat one / repeat all)
 
+---
+
 ### 📃 Playlist & UI
 
-- Playlist view / track list
-- Active track highlighting
+- Playlist view with active track highlighting
+- Track selection from playlist
 - Responsive layout for mobile + desktop
-- Modern UI icons using `lucide-react`
+- Modern UI icons via `lucide-react`
+- Mini-player persistent bottom bar UI
 
-### 🎨 Styling
+---
 
-- TailwindCSS utility styling
-- Sass support included
-- CoreUI React components used where helpful
+### 🎛 Persistent Player State
+
+The player uses a global `PlayerProvider` (React Context) to maintain playback state across the entire app, including:
+
+- Current track + index
+- Shuffle / repeat mode
+- Playback state (playing/paused)
+- Volume + mute
+- Playback position
+- Mini-player persistence across routes
+
+State is persisted using **LocalStorage**, so playback settings survive refresh.
+
+---
 
 ### 🖥️ Media Session API Support
 
@@ -43,19 +58,32 @@ This app supports the **Media Session API**, enabling:
 
 - OS-level play/pause/skip controls
 - Keyboard media key support
-- Track metadata display in system UI
+- Track metadata displayed in system UI (title, artist, album artwork)
+- Playback state syncing (playing/paused)
 
 ---
 
-## 🔥 Roadmap / Planned Features
+### ⌨️ Keyboard Shortcuts
 
-### Phase 1 — Core Player Improvements
+Keyboard shortcuts are supported globally (unless typing in an input):
 
-- [ ] Keyboard shortcuts (space, arrows, volume keys)
-- [ ] Media Session API support (OS-level playback controls)
-- [ ] Mini-player / persistent bottom bar UI
-- [ ] Better mobile playback UX
-- [ ] Better track metadata display (artist/album)
+- **Space** → Play/Pause
+- **N** → Next Track
+- **P** → Previous Track
+- **M** → Mute Toggle
+- **Arrow Right** → Seek forward (+5s)
+- **Arrow Left** → Seek backward (-5s)
+
+---
+
+### 🧭 Routing (React Router)
+
+This app supports multiple pages via **React Router**:
+
+- `/` → Home
+- `/now-playing` → Now Playing page
+
+Playback continues seamlessly between routes thanks to the global player context.
 
 ---
 
@@ -69,6 +97,7 @@ This app supports the **Media Session API**, enabling:
 - **CoreUI React**
 - **Lucide React (icons)**
 - **rc-progress** (progress bar UI)
+- **React Router DOM** (routing)
 
 ---
 
